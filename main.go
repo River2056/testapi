@@ -16,6 +16,8 @@ import (
 
 const (
 	LOGIN_URL = "/api/login/to_login"
+	GET       = "get"
+	POST      = "post"
 )
 
 var environments map[string]string = map[string]string{
@@ -83,12 +85,14 @@ func main() {
 	token := jsonRes["data"].(map[string]interface{})
 
 	var req *http.Request
-	if *requestMethod == "get" {
+	switch *requestMethod {
+	case GET:
 		req, err = http.NewRequest(strings.ToUpper(*requestMethod), testEndPoint, nil)
 		if err != nil {
 			log.Fatalf("error while making a get request")
 		}
-	} else {
+
+	case POST:
 		b := new(bytes.Buffer)
 		json.NewEncoder(b).Encode(payload)
 		req, err = http.NewRequest(strings.ToUpper(*requestMethod), testEndPoint, b)
