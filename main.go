@@ -28,6 +28,12 @@ var environments map[string]string = map[string]string{
 	"virgo":     "https://secure-virgo-ex.crm-alpha.com",
 }
 
+func logError(err error, msg string) {
+	if err != nil {
+		log.Fatalf("%v: %v\n", msg, err)
+	}
+}
+
 func main() {
 	env := flag.String("e", "localhost", "environment name")
 	username := flag.String("u", "deposit@test.com", "login user")
@@ -54,9 +60,7 @@ func main() {
 	fmt.Println()
 
 	result, err := exec.Command("node", "/root/go/src/testapi/rsa_components/index.js", *username).Output()
-	if err != nil {
-		log.Fatalf("error running node command: %v\n", err)
-	}
+	logError(err, "error running node command")
 
 	passwordHash := md5.Sum([]byte(*password))
 
@@ -66,14 +70,10 @@ func main() {
 		"password_login": {hex.EncodeToString(passwordHash[:])},
 		"utc":            {"39600000"},
 	}
-	if err != nil {
-		log.Fatalf("error while marshaling login json data")
-	}
+	logError(err, "error while marshaling login json data")
 
 	res, err := http.PostForm(loginUrl, url.Values(loginData))
-	if err != nil {
-		log.Fatalf("error while logging in: %v\n", err)
-	}
+	logError(err, "error while logging in")
 
 	if res.StatusCode != 200 {
 		log.Fatalf("login failed: %v\n", res)
@@ -88,34 +88,26 @@ func main() {
 	switch *requestMethod {
 	case GET:
 		req, err = http.NewRequest(strings.ToUpper(*requestMethod), testEndPoint, nil)
-		if err != nil {
-			log.Fatalf("error while making a get request")
-		}
+		logError(err, "error while making a get request")
 
 	case POST:
 		b := new(bytes.Buffer)
 		json.NewEncoder(b).Encode(payload)
 		req, err = http.NewRequest(strings.ToUpper(*requestMethod), testEndPoint, b)
-		if err != nil {
-			log.Fatalf("error while making a post request")
-		}
+		logError(err, "error while making a post request")
 		req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	}
 	req.Header.Add("cookie", cookie)
 	req.Header.Add("token", token["accessToken"].(string))
 
 	response, err := http.DefaultClient.Do(req)
-	if err != nil {
-		log.Fatalf("error while receiving a response from test end point: %v\n", err)
-	}
+	logError(err, "error while receiving a response from test end point: %v\n")
 	defer response.Body.Close()
 
 	var jsonResponse map[string]interface{}
 	json.NewDecoder(response.Body).Decode(&jsonResponse)
 	output, err := json.MarshalIndent(jsonResponse, "", "  ")
-	if err != nil {
-		log.Fatalf("error while marshaling json output: %v\n", err)
-	}
+	logError(err, "error while marshaling json output")
 
 	fmt.Println()
 	fmt.Println(string(output))
