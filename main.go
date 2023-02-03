@@ -97,7 +97,7 @@ func main() {
 		json.NewEncoder(b).Encode(payload)
 		req, err = http.NewRequest(strings.ToUpper(*requestMethod), testEndPoint, b)
 		if err != nil {
-			log.Fatalf("error while making a get request")
+			log.Fatalf("error while making a post request")
 		}
 		req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	}
