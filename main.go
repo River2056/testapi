@@ -40,7 +40,7 @@ func main() {
 	password := flag.String("p", "123Qwe", "login user password")
 	urlEndpoint := flag.String("r", "/api/campaign/eligible-campaigns", "test url endpoint")
 	dataPayload := flag.String("d", "", "post request body (payload)")
-	requestMethod := flag.String("m", "get", "request method")
+	// requestMethod := flag.String("m", "get", "request method")
 	flag.Parse()
 
 	payload := make(map[string]interface{})
@@ -54,7 +54,13 @@ func main() {
 	fmt.Printf("password: %v\n", *password)
 	fmt.Printf("url endpoint: %v\n", *urlEndpoint)
 	fmt.Printf("payload: %v\n", payload)
-	fmt.Printf("requestMethod: %v\n", *requestMethod)
+	var requestMethod string
+	if len(payload) == 0 {
+		requestMethod = GET
+	} else {
+		requestMethod = POST
+	}
+	// fmt.Printf("requestMethod: %v\n", *requestMethod)
 	fmt.Printf("login url: %v\n", loginUrl)
 	fmt.Printf("url to test: %v\n", testEndPoint)
 	fmt.Println()
@@ -85,15 +91,15 @@ func main() {
 	token := jsonRes["data"].(map[string]interface{})
 
 	var req *http.Request
-	switch *requestMethod {
+	switch requestMethod {
 	case GET:
-		req, err = http.NewRequest(strings.ToUpper(*requestMethod), testEndPoint, nil)
+		req, err = http.NewRequest(requestMethod, testEndPoint, nil)
 		logError(err, "error while making a get request")
 
 	case POST:
 		b := new(bytes.Buffer)
 		json.NewEncoder(b).Encode(payload)
-		req, err = http.NewRequest(strings.ToUpper(*requestMethod), testEndPoint, b)
+		req, err = http.NewRequest(requestMethod, testEndPoint, b)
 		logError(err, "error while making a post request")
 		req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	}
